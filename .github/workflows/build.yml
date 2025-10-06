@@ -1,0 +1,79 @@
+name: Flutter Build (from clone)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Clone target repo
+        run: |
+          git clone https://github.com/2697a/bujuan
+          cd bujuan
+          git log -1
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+          channel: 'stable'
+
+      - name: Flutter pub get
+        run: |
+          cd bujuan
+          flutter pub get
+
+      - name: Build Android APK (release)
+        run: |
+          cd bujuan
+          flutter build apk --release
+
+      - name: Build iOS (release)
+        run: |
+          cd bujuan
+          flutter build ios --release --no-codesign
+
+      - name: Build macOS (release)
+        run: |
+          cd bujuan
+          flutter build macos --release
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: bujuan/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload iOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: bujuan/build/ios/iphoneos/
+
+      - name: Upload macOS Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: bujuan/build/macos/Build/Products/Release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: "Flutter Build v${{ github.run_number }}"
+          body: |
+            从仓库 https://github.com/2697a/bujuan 克隆并自动构建的 Flutter 版本：
+            - Android APK
+            - iOS (未签名)
+            - macOS App
+          files: |
+            bujuan/build/app/outputs/flutter-apk/app-release.apk
+            bujuan/build/ios/iphoneos/
+            bujuan/build/macos/Build/Products/Release/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
