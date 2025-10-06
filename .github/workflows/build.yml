@@ -1,4 +1,4 @@
-name: Flutter Build (Android + iOS)
+name: Flutter Build (Android + Windows)
 
 on:
   workflow_dispatch:
@@ -32,10 +32,10 @@ jobs:
           cd bujuan
           flutter build apk --release
 
-      - name: Build iOS (release)
+      - name: Build Windows (release)
         run: |
           cd bujuan
-          flutter build ios --release --no-codesign
+          flutter build windows --release
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
@@ -43,11 +43,11 @@ jobs:
           name: android-apk
           path: bujuan/build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload iOS Build
+      - name: Upload Windows Build
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build
-          path: bujuan/build/ios/iphoneos/
+          name: windows-build
+          path: bujuan/build/windows/x64/runner/Release/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -57,9 +57,9 @@ jobs:
           body: |
             从仓库 https://github.com/2697a/bujuan 克隆并自动构建的 Flutter 版本：
             - ✅ Android APK
-            - ✅ iOS (未签名)
+            - ✅ Windows EXE
           files: |
             bujuan/build/app/outputs/flutter-apk/app-release.apk
-            bujuan/build/ios/iphoneos/
+            bujuan/build/windows/x64/runner/Release/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
